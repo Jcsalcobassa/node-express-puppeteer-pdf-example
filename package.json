@@ -1,20 +1,12 @@
 {
-  "name": "node-express-puppeteer-pdf-example",
-  "version": "0.0.0",
-  "private": true,
+  "name": "puppeteer-certidoes",
+  "version": "1.0.0",
+  "main": "app.js",
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "nodemon node ./bin/www"
+    "start": "node app.js"
   },
   "dependencies": {
-    "cookie-parser": "^1.4.6",
-    "debug": "^4.3.4",
-    "dotenv": "^16.3.1",
-    "express": "^4.19.2",
-    "morgan": "^1.10.0",
-    "puppeteer": "^8.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.7"
+    "express": "^4.18.2",
+    "puppeteer": "^21.3.8"
   }
 }
