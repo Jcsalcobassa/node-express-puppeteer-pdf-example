@@ -1,40 +1,44 @@
-
-require('dotenv').config();
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-
-const { PROTECT_ROUTES, API_KEY } = process.env;
-
-const indexRouter = require("./routes/index");
+const express = require('express');
+const puppeteer = require('puppeteer');
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.get('/certidao', async (req, res) => {
+  const doc = req.query.doc;
+  if (!doc) return res.status(400).send('Faltando o parâmetro ?doc=');
 
-app.use((req, res, next) => {
-    if (PROTECT_ROUTES) {
-        const { api_key } = req.body;
-        if (API_KEY === api_key) {
-            next()
-            return;
-        }
-        res.statusCode = 401;
-        res.json({
-            message: 'not_authorised_to_use_api'
-        })
-    }
-    else {
-      next();
-    }
+  const url = 'https://solucoes.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp'; // Exemplo Receita Federal
 
-    return;
+  try {
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
+    await page.goto(url);
+
+    // Aqui você pode adaptar os comandos de preenchimento, clique e espera.
+    await page.type('input[name="cnpj"]', doc);
+
+    // Simula clique no botão, se necessário
+    // await page.click('#btnConsultar');
+    // await page.waitForNavigation();
+
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+    await browser.close();
+
+    res.setHeader('Content-Disposition', `attachment; filename=certidao-${doc}.pdf`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erro ao gerar certidão');
+  }
 });
 
-app.use("/", indexRouter);
+app.get('/', (req, res) => {
+  res.send('API para gerar certidão com Puppeteer: use /certidao?doc=00000000000000');
+});
 
-module.exports = app;
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
